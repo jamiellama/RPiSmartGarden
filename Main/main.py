@@ -1,4 +1,5 @@
-# Smart garden test code
+#Raspberry Pi Smart Garden
+#Jamie 40176844
 
 # Library Imports
 import time
