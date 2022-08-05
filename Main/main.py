@@ -9,6 +9,7 @@ import RPi.GPIO as GPIO
 import neopixel
 import adafruit_dht
 import adafruit_bh1750
+import mysql.connector
 import adafruit_ads1x15.ads1015 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
 
@@ -36,27 +37,31 @@ pixels = neopixel.NeoPixel(
     pixel_pin, num_pixels, brightness=0.2, auto_write=True, pixel_order=ORDER
 )
 
-# Creating variable for normal operating colour of neopixel
+# MySQL Database Connection
+mydb = mysql.connector.connect(
+  host="localhost",
+  user="40176844",
+  password="banana12",
+  database="RPiSmartGardenDB"
+)
+
+# Neopixel colour variables
+# Normal operating colour
 def neopixel_normal():
     pixels.fill((0, 255, 0))
     pixels.show()
 
-# Creating variable for colour of neopixel when there is an exception
+# Exception colour
 def neopixel_exception():
     pixels.fill((255, 0, 0))
-    pixels.show()
-
-# Creating variable for colour of neopixel when water tank is empty
-def neopixel_water_tank():
-    pixels.fill((0, 255, 255))
     pixels.show()
 
 while True:
     try:
         # Set pump relay to off - relay on GPIO 21
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(21, GPIO.OUT)
-        GPIO.output(21, GPIO.HIGH)
+        #GPIO.setmode(GPIO.BCM)
+        #GPIO.setup(25, GPIO.OUT)
+        #GPIO.output(25, GPIO.HIGH)
 
 
         # Sensor inputs and connection check
@@ -64,6 +69,7 @@ while True:
         raw_light_level = lux_sens.lux
         temperature = dht_sens.temperature
         humidity = dht_sens.humidity
+        water_tank_level = 0
 
 
         # Sensor failure check
@@ -88,6 +94,75 @@ while True:
                     moisture_max_value - moisture_min_value)
         moisture_raw_percentage = (1 - moisture_calculated_percentage) * 100
         moisture_percentage = round(moisture_raw_percentage)
+
+        # Water pump
+        # Pump will only activate when moisture level is between 0% - 44%
+
+        # 40% - 44%
+        if moisture_percentage in range(40, 45):
+            db_water_log = 5.0
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(25, GPIO.OUT)
+            GPIO.output(25, GPIO.LOW)
+            time.sleep(3)
+            GPIO.output(25, GPIO.HIGH)
+
+        # 35% - 39%
+        elif moisture_percentage in range(35, 40):
+            db_water_log = 7.5
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(25, GPIO.OUT)
+            GPIO.output(25, GPIO.LOW)
+            time.sleep(4)
+            GPIO.output(25, GPIO.HIGH)
+
+        # 30% - 34%
+        elif moisture_percentage in range(30, 35):
+            db_water_log = 10.0
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(25, GPIO.OUT)
+            GPIO.output(25, GPIO.LOW)
+            time.sleep(5)
+            GPIO.output(25, GPIO.HIGH)
+
+        # 25% - 29%
+        elif moisture_percentage in range(25, 30):
+            db_water_log = 12.5
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(25, GPIO.OUT)
+            GPIO.output(25, GPIO.LOW)
+            time.sleep(6)
+            GPIO.output(25, GPIO.HIGH)
+
+        # 20% - 24%
+        elif moisture_percentage in range(20, 25):
+            db_water_log = 15.0
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(25, GPIO.OUT)
+            GPIO.output(25, GPIO.LOW)
+            time.sleep(7)
+            GPIO.output(25, GPIO.HIGH)
+
+        # 10% - 19%
+        elif moisture_percentage in range(10, 19):
+            db_water_log = 17.5
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(25, GPIO.OUT)
+            GPIO.output(25, GPIO.LOW)
+            time.sleep(8)
+            GPIO.output(25, GPIO.HIGH)
+
+        # 0% - 9%
+        elif moisture_percentage in range(0, 10):
+            db_water_log = 20.0
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(25, GPIO.OUT)
+            GPIO.output(25, GPIO.LOW)
+            time.sleep(9)
+            GPIO.output(25, GPIO.HIGH)
+        else:
+            print('Error determining moisture level')
+            db_water_log = 0
 
 
         # Lux sensor - round up input value to int
@@ -183,6 +258,7 @@ while True:
         # Print to console
         print('=====')
         print('J.A.R.V.I.S Raspberry Pi Smart Garden')
+        print('Console Output')
         print('Reading sensors...')
         print('=====')
 
@@ -192,60 +268,73 @@ while True:
 
         print('\nSoil Moisture Level: {}%'.format(moisture_percentage))
 
-        if moisture_percentage == 100:
+        # 90% - 100%
+        if moisture_percentage in range(90, 101):
             print('The moisture level is currently very high')
-        elif moisture_percentage in range(95, 100):
-            print('The moisture level is currently very high')
-        elif moisture_percentage in range(90, 95):
-            print('The moisture level is currently very high')
-        elif moisture_percentage in range(85, 90):
+        # 80% - 89%
+        elif moisture_percentage in range(80, 90):
             print('The moisture level is currently high')
-        elif moisture_percentage in range(80, 85):
-            print('The moisture level is currently high')
-        elif moisture_percentage in range(75, 80):
+        # 70% - 79%
+        elif moisture_percentage in range(70, 80):
             print('The moisture level is currently slightly high')
-        elif moisture_percentage in range(70, 75):
-            print('The moisture level is currently slightly high')
-        elif moisture_percentage in range(65, 70):
+        # 45% - 69%
+        elif moisture_percentage in range(45, 70):
             print('The moisture level is currently optimal')
-        elif moisture_percentage in range(60, 65):
-            print('The moisture level is currently optimal')
-        elif moisture_percentage in range(55, 60):
-            print('The moisture level is currently optimal')
-        elif moisture_percentage in range(50, 55):
-            print('The moisture level is currently optimal')
-        elif moisture_percentage in range(45, 50):
-            print('The moisture level is currently optimal')
-        elif moisture_percentage in range(40, 45):
-            print('The moisture level is currently optimal')
+        # 40% - 44%
+        elif moisture_percentage in range(40, 44):
+            print('The moisture level is currently slightly low')
+            print('5ml of water was dispensed')
+        # 35% - 39%
         elif moisture_percentage in range(35, 40):
             print('The moisture level is currently slightly low')
+            print('7.5ml of water was dispensed')
+        # 30% - 34%
         elif moisture_percentage in range(30, 35):
             print('The moisture level is currently slightly low')
+            print('10ml of water was dispensed')
+        # 25% - 29%
         elif moisture_percentage in range(25, 30):
             print('The moisture level is currently low')
+            print('12.5ml of water was dispensed')
+        # 20% - 24%
         elif moisture_percentage in range(20, 25):
             print('The moisture level is currently low')
-        elif moisture_percentage in range(15, 20):
+            print('15ml of water was dispensed')
+        # 10% - 19%
+        elif moisture_percentage in range(10, 19):
             print('The moisture level is currently low')
-        elif moisture_percentage in range(10, 15):
+            print('17.5ml of water was dispensed')
+        # 0% - 9%
+        elif moisture_percentage in range(0, 9):
             print('The moisture level is currently very low')
-        elif moisture_percentage in range(5, 10):
-            print('The moisture level is currently very low')
-        elif moisture_percentage in range(0, 5):
-            print('The moisture level is currently very low')
+            print('20ml of water was dispensed')
         else:
-            print('Error determining moisture level actions')
+            print('Error determining moisture level')
+
 
         print('\nLight Level: {} Lux'.format(light_level))
         print('\n')
         print('\n')
 
+        # Send to MySQL
+        mycursor = mydb.cursor()
+
+        sql = "INSERT INTO sensor_data (soil_moisture, temperature, humidity, light_level, water_tank_level) VALUES (%s, %s, %s, %s, %s)"
+        val = (moisture_percentage, temperature, humidity, light_level, water_tank_level)
+        mycursor.execute(sql, val)
+
+        mydb.commit()
+
+        print('Data sent to database')
+
         # Sleep delay
-        time.sleep(10)
+        time.sleep(60)
+
+        #GPIO.cleanup()
 
     except RuntimeError as error:
-        # print(error.args[0])
+        print('===== RUNTIME ERROR =====')
+        print(error.args[0])
         #pixels.fill((255, 215, 0))
         #pixels.show()
         print('\nProblem occurred reading sensor data!')
@@ -256,6 +345,7 @@ while True:
         continue
 
     except Exception as error:
+        print('===== EXCEPTION =====')
         dht_sens.exit()
 
         pixels.deinit()
@@ -272,7 +362,4 @@ while True:
         print('\n')
         time.sleep(2.0)
         continue
-
-    finally:
-        GPIO.cleanup()
 
