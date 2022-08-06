@@ -83,7 +83,7 @@ while True:
 
 
         # Sensor inputs and connection check
-        print("\nSensor connection check...")
+        print("== Sensor connection check... ==")
         moisture_input_value = moisture_sens.value
         raw_light_level = lux_sens.lux
         temperature = dht_sens.temperature
@@ -116,7 +116,7 @@ while True:
         print("Success")
 
         # Sensor failure check
-        print("\nInput data check...")
+        print("\n== Input data check... ==")
         if moisture_input_value < 7000:
             raise Exception
         print("Success")
@@ -160,21 +160,29 @@ while True:
 
         # Water pump
         # Pump will only activate when moisture level is between 0% - 44% and water tank is not empty
-        print("\n Water tank level check...")
+        print("\n== Water tank level check... ==")
 
         if water_level_percentage < 15:
+            db_water_log = 0
             print("Water tank below 15% which is minimum level, unable to dispense water until filled")
 
         else:
+            print("Success")
+            print("\n== Dispensing water via pump... ==")
+            # 45% - 100%
+            if moisture_percentage in range(45, 101):
+                db_water_log = 0
+                print("Success - no water needed")
 
             # 40% - 44%
-            if moisture_percentage in range(40, 45):
+            elif moisture_percentage in range(40, 45):
                 db_water_log = 5.0
                 GPIO.setmode(GPIO.BCM)
                 GPIO.setup(25, GPIO.OUT)
                 GPIO.output(25, GPIO.LOW)
                 time.sleep(3)
                 GPIO.output(25, GPIO.HIGH)
+                print("Success")
 
             # 35% - 39%
             elif moisture_percentage in range(35, 40):
@@ -184,6 +192,7 @@ while True:
                 GPIO.output(25, GPIO.LOW)
                 time.sleep(4)
                 GPIO.output(25, GPIO.HIGH)
+                print("Success")
 
             # 30% - 34%
             elif moisture_percentage in range(30, 35):
@@ -193,6 +202,7 @@ while True:
                 GPIO.output(25, GPIO.LOW)
                 time.sleep(5)
                 GPIO.output(25, GPIO.HIGH)
+                print("Success")
 
             # 25% - 29%
             elif moisture_percentage in range(25, 30):
@@ -202,6 +212,7 @@ while True:
                 GPIO.output(25, GPIO.LOW)
                 time.sleep(6)
                 GPIO.output(25, GPIO.HIGH)
+                print("Success")
 
             # 20% - 24%
             elif moisture_percentage in range(20, 25):
@@ -211,6 +222,7 @@ while True:
                 GPIO.output(25, GPIO.LOW)
                 time.sleep(7)
                 GPIO.output(25, GPIO.HIGH)
+                print("Success")
 
             # 10% - 19%
             elif moisture_percentage in range(10, 19):
@@ -220,6 +232,7 @@ while True:
                 GPIO.output(25, GPIO.LOW)
                 time.sleep(8)
                 GPIO.output(25, GPIO.HIGH)
+                print("Success")
 
             # 0% - 9%
             elif moisture_percentage in range(0, 10):
@@ -229,10 +242,10 @@ while True:
                 GPIO.output(25, GPIO.LOW)
                 time.sleep(9)
                 GPIO.output(25, GPIO.HIGH)
+                print("Success")
             else:
-                print('Failure determining water amount, no water has been dispensed')
+                print('Failure - Unable to determine how much water to dispense')
                 db_water_log = 0
-        print("Success")
 
 
         # Lux sensor - round up input value to int
@@ -243,7 +256,7 @@ while True:
         #water_level_percentage = 24
 
         # Neopixels set neopixel_water() if water tank level is low
-        print("\nSetting Neopixel colour and brightness")
+        print("\n== Setting Neopixel colour and brightness... ==")
         if water_level_percentage <= 25:
             pixels.deinit()
             pixels = neopixel.NeoPixel(
@@ -342,64 +355,60 @@ while True:
         print("Success")
 
         # Print sensor inputs to console
-        print("\n Data Inputs:")
+        print("\n== Data Inputs: ==")
         print('Temperature: {}°C'.format(temperature))
-
-        print('\nHumidity: {}%'.format(humidity))
-
-        print('\nSoil Moisture Level: {}%'.format(moisture_percentage))
+        print('Humidity: {}%'.format(humidity))
+        print('Soil Moisture Level: {}%'.format(moisture_percentage))
+        print('Water Tank Level: {}%'.format(water_level_percentage))
+        print('Light Level: {} Lux'.format(light_level))
 
         # 90% - 100%
         if moisture_percentage in range(90, 101):
-            print('The moisture level is currently very high')
+            print('\nThe moisture level is currently very high')
         # 80% - 89%
         elif moisture_percentage in range(80, 90):
-            print('The moisture level is currently high')
+            print('\nThe moisture level is currently high')
         # 70% - 79%
         elif moisture_percentage in range(70, 80):
-            print('The moisture level is currently slightly high')
+            print('\nThe moisture level is currently slightly high')
         # 45% - 69%
         elif moisture_percentage in range(45, 70):
-            print('The moisture level is currently optimal')
+            print('\nThe moisture level is currently optimal')
         # 40% - 44%
         elif moisture_percentage in range(40, 44):
-            print('The moisture level is currently slightly low')
+            print('\nThe moisture level is currently slightly low')
             print('5ml of water was dispensed')
         # 35% - 39%
         elif moisture_percentage in range(35, 40):
-            print('The moisture level is currently slightly low')
+            print('\nThe moisture level is currently slightly low')
             print('7.5ml of water was dispensed')
         # 30% - 34%
         elif moisture_percentage in range(30, 35):
-            print('The moisture level is currently slightly low')
+            print('\nThe moisture level is currently slightly low')
             print('10ml of water was dispensed')
         # 25% - 29%
         elif moisture_percentage in range(25, 30):
-            print('The moisture level is currently low')
+            print('\nThe moisture level is currently low')
             print('12.5ml of water was dispensed')
         # 20% - 24%
         elif moisture_percentage in range(20, 25):
-            print('The moisture level is currently low')
+            print('\nThe moisture level is currently low')
             print('15ml of water was dispensed')
         # 10% - 19%
         elif moisture_percentage in range(10, 19):
-            print('The moisture level is currently low')
+            print('\nThe moisture level is currently low')
             print('17.5ml of water was dispensed')
         # 0% - 9%
         elif moisture_percentage in range(0, 9):
-            print('The moisture level is currently very low')
+            print('\nThe moisture level is currently very low')
             print('20ml of water was dispensed')
         else:
-            print('Error determining moisture level')
-
-        print('\n Water Tank Level:{}%'.format(water_level_percentage))
-
-        print('\nLight Level: {} Lux'.format(light_level))
+            print('\nError determining moisture level')
 
 
         # Send to MySQL database
         # sensor_data
-        print("\n Sending data to MySQL...")
+        print("\n== Sending data to MySQL... ==")
         mycursor = mydb.cursor()
         sql = "INSERT INTO sensor_data (soil_moisture, temperature, humidity, light_level, water_tank_level, water_dispensed) VALUES (%s, %s, %s, %s, %s, %s)"
         val = (moisture_percentage, temperature, humidity, light_level, water_level_percentage, db_water_log)
@@ -407,9 +416,12 @@ while True:
         mydb.commit()
         print("Success")
 
-        print("End of script, 60 second delay")
+        print('\n=====')
+        print('End of script, 60 second delay')
+        print('=====')
         print('\n')
         print('\n')
+
         # Sleep delay
         time.sleep(60)
 
@@ -427,6 +439,7 @@ while True:
 
     except Exception as exception:
         print('\n===== EXCEPTION =====')
+        print(exception.args[0])
         dht_sens.exit()
 
         # Neopixels red
@@ -438,10 +451,7 @@ while True:
         pixels.show()
 
         print('\nAn unexpected and fatal error has occurred')
-        print('This is likely to have been caused by hardware failure or a database connection error')
         print('The program has been terminated and will need to be restarted manually')
-        print(exception.args[0])
-        print('\n')
         print('\n')
         raise
 
