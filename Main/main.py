@@ -121,6 +121,9 @@ while True:
             raise Exception
         print("Success")
 
+        print("\n== Raw soil moisture value (for testing/debugging)... ==")
+        print(moisture_input_value)
+
         # Water tank level percentage calculation
         # Max input distance (minimum tank level [furthest from sensor])
         water_max_level = 16.5
@@ -141,16 +144,16 @@ while True:
 
 
         # Capacitive soil moisture percentage calculation
-        if moisture_input_value > 19100:
-            moisture_input_value = 19100
+        if moisture_input_value > 12000:
+            moisture_input_value = 12000
 
-        if moisture_input_value < 8000:
-            moisture_input_value = 8000
+        if moisture_input_value < 7000:
+            moisture_input_value = 7000
 
-        # Max input value through ADC = 19100 (0% wet)
-        # Min input value through ADC = 8000 (100% wet)
-        moisture_max_value = 19100
-        moisture_min_value = 8000
+        # Max input value through ADC = 12000 (0% wet)
+        # Min input value through ADC = 7000 (100% wet)
+        moisture_max_value = 12000
+        moisture_min_value = 7000
 
         # Calculation to find % of input value between max and min values
         moisture_calculated_percentage = (moisture_input_value - moisture_min_value) / (
