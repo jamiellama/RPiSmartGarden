@@ -1,5 +1,9 @@
-#J.A.R.V.I.S Raspberry Pi Smart Garden
-#Jamie 40176844
+#!/usr/bin/env python
+
+"""RPiSmartGarden.py: This script queries RPi Smart Garden sensors, processes data and inserts it into SQL database.
+RPi Smart Garden peripherals are controlled using logical reasoning based on the processed data."""
+
+__author__      = "40176844"
 
 # Library Imports
 import time
@@ -19,8 +23,8 @@ i2c = busio.I2C(board.SCL, board.SDA)
 # Initialise ADC, it is using I2C
 ads = ADS.ADS1015(i2c)
 
-# Initialise lux sensor, it is using I2C
-lux_sens = adafruit_bh1750.BH1750(i2c)
+# Initialise light sensor, it is using I2C
+light_sens = adafruit_bh1750.BH1750(i2c)
 
 # Initialise capacitive moisture sensor, it is on channel A0 through the ADC
 moisture_sens = AnalogIn(ads, ADS.P0)
@@ -82,12 +86,39 @@ while True:
         GPIO.output(25, GPIO.HIGH)
 
 
-        # Sensor inputs and connection check
-        print("== Sensor connection check... ==")
-        moisture_input_value = moisture_sens.value
-        raw_light_level = lux_sens.lux
-        temperature = dht_sens.temperature
-        humidity = dht_sens.humidity
+        # Sensor comm check and sensor outputs
+        print("== Sensor comm check... ==")
+        comm_check_moisture_sens = moisture_sens.value
+        comm_check_light_sens = light_sens.lux
+        comm_check_dht22_temperature = dht_sens.temperature
+        comm_check_dht22_humidity = dht_sens.humidity
+        print("Success")
+
+
+        print("\n== Reading sensors and calculating averages... ==")
+        # DHT22 temperature sensor
+        temperature_reading_1 = dht_sens.temperature
+        time.sleep(3)
+        temperature_reading_2 = dht_sens.temperature
+        time.sleep(3)
+        temperature_reading_3 = dht_sens.temperature
+
+        temperature_avg_calc = ((temperature_reading_1+temperature_reading_2+temperature_reading_3)/3)
+
+        temperature_raw_input = round(temperature_avg_calc, 1)
+
+
+        # DHT22 humidity sensor
+        humidity_reading_1 = dht_sens.humidity
+        time.sleep(3)
+        humidity_reading_2 = dht_sens.humidity
+        time.sleep(3)
+        humidity_reading_3 = dht_sens.humidity
+
+        humidity_avg_calc = ((humidity_reading_1+humidity_reading_2+humidity_reading_3)/3)
+
+        humidity_raw_input = round(humidity_avg_calc)
+
 
         # Ultrasonic water tank sensor
         GPIO.setmode(GPIO.BCM)
@@ -111,61 +142,181 @@ while True:
 
         # Conversion from pulse duration to cm
         pulse_duration = pulse_end - pulse_start
-        water_level_distance = pulse_duration * 17150
-        water_level_distance = round(water_level_distance, 2)
+        water_level_tank_distance = pulse_duration * 17150
+        water_tank_level_reading_1 = round(water_level_tank_distance, 2)
+        time.sleep(0.2)
+
+        # TRIG
+        GPIO.output(23, GPIO.LOW)
+        time.sleep(2)
+        GPIO.output(23, GPIO.HIGH)
+        time.sleep(0.00001)
+        GPIO.output(23, GPIO.LOW)
+
+        # ECHO
+        while GPIO.input(24) == 0:
+            pulse_start = time.time()
+
+        while GPIO.input(24) == 1:
+            pulse_end = time.time()
+
+        # Conversion from pulse duration to cm
+        pulse_duration = pulse_end - pulse_start
+        water_level_tank_distance = pulse_duration * 17150
+        water_tank_level_reading_2 = round(water_level_tank_distance, 2)
+        time.sleep(0.2)
+
+        # TRIG
+        GPIO.output(23, GPIO.LOW)
+        time.sleep(2)
+        GPIO.output(23, GPIO.HIGH)
+        time.sleep(0.00001)
+        GPIO.output(23, GPIO.LOW)
+
+        # ECHO
+        while GPIO.input(24) == 0:
+            pulse_start = time.time()
+
+        while GPIO.input(24) == 1:
+            pulse_end = time.time()
+
+        # Conversion from pulse duration to cm
+        pulse_duration = pulse_end - pulse_start
+        water_level_tank_distance = pulse_duration * 17150
+        water_tank_level_reading_3 = round(water_level_tank_distance, 2)
+
+        water_tank_level_avg_calc = ((water_tank_level_reading_1+water_tank_level_reading_2+water_tank_level_reading_3)/3)
+
+        water_tank_level_raw_input = round(water_tank_level_avg_calc, 2)
+
+
+        # Capacitive soil moisture sensor
+        soil_moisture_reading_1 = moisture_sens.value
+        time.sleep(0.2)
+        soil_moisture_reading_2 = moisture_sens.value
+        time.sleep(0.2)
+        soil_moisture_reading_3 = moisture_sens.value
+        time.sleep(0.2)
+        soil_moisture_reading_4 = moisture_sens.value
+        time.sleep(0.2)
+        soil_moisture_reading_5 = moisture_sens.value
+        time.sleep(0.2)
+        soil_moisture_reading_6 = moisture_sens.value
+        time.sleep(0.2)
+        soil_moisture_reading_7 = moisture_sens.value
+        time.sleep(0.2)
+        soil_moisture_reading_8 = moisture_sens.value
+        time.sleep(0.2)
+        soil_moisture_reading_9 = moisture_sens.value
+        time.sleep(0.2)
+        soil_moisture_reading_10 = moisture_sens.value
+
+        soil_moisture_avg_calc = ((soil_moisture_reading_1+soil_moisture_reading_2+soil_moisture_reading_3+
+                                 soil_moisture_reading_4+soil_moisture_reading_5+soil_moisture_reading_6+
+                                 soil_moisture_reading_7+soil_moisture_reading_8+soil_moisture_reading_9+
+                                 soil_moisture_reading_10)/10)
+
+        soil_moisture_raw_input = round(soil_moisture_avg_calc)
+
+
+        # Light sensor
+        light_reading_1 = light_sens.lux
+        time.sleep(0.2)
+        light_reading_2 = light_sens.lux
+        time.sleep(0.2)
+        light_reading_3 = light_sens.lux
+        time.sleep(0.2)
+        light_reading_4 = light_sens.lux
+        time.sleep(0.2)
+        light_reading_5 = light_sens.lux
+        time.sleep(0.2)
+        light_reading_6 = light_sens.lux
+        time.sleep(0.2)
+        light_reading_7 = light_sens.lux
+        time.sleep(0.2)
+        light_reading_8 = light_sens.lux
+        time.sleep(0.2)
+        light_reading_9 = light_sens.lux
+        time.sleep(0.2)
+        light_reading_10 = light_sens.lux
+
+        light_avg_calc = ((light_reading_1+light_reading_2+light_reading_3+light_reading_4+light_reading_5+
+                                  light_reading_6+light_reading_7+light_reading_8+light_reading_9+light_reading_10)/10)
+
+        light_raw_input = round(light_avg_calc)
+
+
         print("Success")
 
-        # Sensor failure check
-        print("\n== Input data check... ==")
-        if moisture_input_value < 7000:
-            raise Exception
-        print("Success")
 
-        print("\n== Raw soil moisture value (for testing/debugging)... ==")
-        print(moisture_input_value)
+        # Sensor out of range failure check
+        print("\n== Raw input data out of range check... ==")
 
+        if soil_moisture_raw_input < 6000:
+            raise ValueError('soil_moisture_raw_input out of range')
+        elif soil_moisture_raw_input > 18000:
+            raise ValueError('soil_moisture_raw_input out of range')
+        else:
+            print("Success")
+
+
+        print("\n== Processing sensor data into a user readable format... ==")
         # Water tank level percentage calculation
         # Max input distance (minimum tank level [furthest from sensor])
-        water_max_level = 16.5
+        water_tank_max_level = 16.5
 
         # Min input distance (maximum tank level [closest to sensor])
-        water_min_level = 6.8
+        water_tank_min_level = 6.8
 
-        if water_level_distance < water_min_level:
-            water_level_distance = water_min_level
+        if water_tank_level_raw_input < water_tank_min_level:
+            water_tank_level_raw_input = water_tank_min_level
 
-        if water_level_distance > water_max_level:
-            water_level_distance = water_max_level
+        if water_tank_level_raw_input > water_tank_max_level:
+            water_tank_level_raw_input = water_tank_max_level
 
-        water_calculated_percentage = (water_level_distance - water_min_level) / (
-                water_max_level - water_min_level)
-        water_raw_percentage = (1 - water_calculated_percentage) * 100
-        water_level_percentage = round(water_raw_percentage)
+        water_tank_level_percentage_calc = (water_tank_level_raw_input - water_tank_min_level) / (
+                water_tank_max_level - water_tank_min_level)
+        water_tank_level_raw_percentage = (1 - water_tank_level_percentage_calc) * 100
+        water_tank_level_percentage = round(water_tank_level_raw_percentage)
 
 
-        # Capacitive soil moisture percentage calculation
-        if moisture_input_value > 12000:
-            moisture_input_value = 12000
+        # Soil moisture percentage calculation
+        if soil_moisture_raw_input > 15000:
+            soil_moisture_raw_input = 15000
 
-        if moisture_input_value < 7000:
-            moisture_input_value = 7000
+        if soil_moisture_raw_input < 8000:
+            soil_moisture_raw_input = 8000
 
         # Max input value through ADC = 12000 (0% wet)
         # Min input value through ADC = 7000 (100% wet)
-        moisture_max_value = 12000
-        moisture_min_value = 7000
+        soil_moisture_max_raw_value = 15000
+        soil_moisture_min_raw_value = 8000
 
         # Calculation to find % of input value between max and min values
-        moisture_calculated_percentage = (moisture_input_value - moisture_min_value) / (
-                    moisture_max_value - moisture_min_value)
-        moisture_raw_percentage = (1 - moisture_calculated_percentage) * 100
-        moisture_percentage = round(moisture_raw_percentage)
+        soil_moisture_percentage_calc = (soil_moisture_raw_input - soil_moisture_min_raw_value) / (
+                soil_moisture_max_raw_value - soil_moisture_min_raw_value)
+        soil_moisture_raw_percentage = (1 - soil_moisture_percentage_calc) * 100
+        soil_moisture_percentage = round(soil_moisture_raw_percentage)
+
+        # Light sensor
+        light_rounded = round(light_raw_input)
+
+        print("Success")
+
+
+        # Assigning variables
+        final_soil_moisture = soil_moisture_percentage
+        final_temperature = temperature_raw_input
+        final_humidity = humidity_raw_input
+        final_light_level = light_rounded
+        final_water_tank_level = water_tank_level_percentage
+
 
         # Water pump
         # Pump will only activate when moisture level is between 0% - 44% and water tank is not empty
         print("\n== Water tank level check... ==")
 
-        if water_level_percentage < 15:
+        if final_water_tank_level < 15:
             db_water_log = 0
             print("Water tank below 15% which is minimum level, unable to dispense water until filled")
 
@@ -173,12 +324,12 @@ while True:
             print("Success")
             print("\n== Dispensing water via pump... ==")
             # 45% - 100%
-            if moisture_percentage in range(45, 101):
+            if final_soil_moisture in range(45, 101):
                 db_water_log = 0
                 print("Success - no water needed")
 
             # 40% - 44%
-            elif moisture_percentage in range(40, 45):
+            elif final_soil_moisture in range(40, 45):
                 db_water_log = 5.0
                 GPIO.setmode(GPIO.BCM)
                 GPIO.setup(25, GPIO.OUT)
@@ -188,7 +339,7 @@ while True:
                 print("Success")
 
             # 35% - 39%
-            elif moisture_percentage in range(35, 40):
+            elif final_soil_moisture in range(35, 40):
                 db_water_log = 7.5
                 GPIO.setmode(GPIO.BCM)
                 GPIO.setup(25, GPIO.OUT)
@@ -198,7 +349,7 @@ while True:
                 print("Success")
 
             # 30% - 34%
-            elif moisture_percentage in range(30, 35):
+            elif final_soil_moisture in range(30, 35):
                 db_water_log = 10.0
                 GPIO.setmode(GPIO.BCM)
                 GPIO.setup(25, GPIO.OUT)
@@ -208,7 +359,7 @@ while True:
                 print("Success")
 
             # 25% - 29%
-            elif moisture_percentage in range(25, 30):
+            elif final_soil_moisture in range(25, 30):
                 db_water_log = 12.5
                 GPIO.setmode(GPIO.BCM)
                 GPIO.setup(25, GPIO.OUT)
@@ -218,7 +369,7 @@ while True:
                 print("Success")
 
             # 20% - 24%
-            elif moisture_percentage in range(20, 25):
+            elif final_soil_moisture in range(20, 25):
                 db_water_log = 15.0
                 GPIO.setmode(GPIO.BCM)
                 GPIO.setup(25, GPIO.OUT)
@@ -228,7 +379,7 @@ while True:
                 print("Success")
 
             # 10% - 19%
-            elif moisture_percentage in range(10, 19):
+            elif final_soil_moisture in range(10, 20):
                 db_water_log = 17.5
                 GPIO.setmode(GPIO.BCM)
                 GPIO.setup(25, GPIO.OUT)
@@ -238,7 +389,7 @@ while True:
                 print("Success")
 
             # 0% - 9%
-            elif moisture_percentage in range(0, 10):
+            elif final_soil_moisture in range(0, 10):
                 db_water_log = 20.0
                 GPIO.setmode(GPIO.BCM)
                 GPIO.setup(25, GPIO.OUT)
@@ -250,9 +401,7 @@ while True:
                 print('Failure - Unable to determine how much water to dispense')
                 db_water_log = 0
 
-
-        # Lux sensor - round up input value to int
-        light_level = round(raw_light_level)
+        final_water_usage = db_water_log
 
 
         # Testing neopixels for water tank level
@@ -260,7 +409,7 @@ while True:
 
         # Neopixels set neopixel_water() if water tank level is low
         print("\n== Setting Neopixel colour and brightness... ==")
-        if water_level_percentage <= 25:
+        if final_water_tank_level <= 25:
             pixels.deinit()
             pixels = neopixel.NeoPixel(
                 pixel_pin, num_pixels, brightness=1, auto_write=True, pixel_order=ORDER
@@ -270,77 +419,77 @@ while True:
 
         # Neopixels set neopixel_normal() and brightness set depending on lux sensor input
         else:
-            if light_level <= 5:
+            if final_light_level <= 5:
                 pixels.deinit()
                 pixels = neopixel.NeoPixel(
                     pixel_pin, num_pixels, brightness = 0, auto_write = True, pixel_order = ORDER
                 )
                 neopixel_normal()
                 pixels.show()
-            elif light_level in range(6, 17):
+            elif final_light_level in range(6, 17):
                 pixels.deinit()
                 pixels = neopixel.NeoPixel(
                     pixel_pin, num_pixels, brightness = 0.1, auto_write = True, pixel_order = ORDER
                 )
                 neopixel_normal()
                 pixels.show()
-            elif light_level in range(17, 28):
+            elif final_light_level in range(17, 28):
                 pixels.deinit()
                 pixels = neopixel.NeoPixel(
                     pixel_pin, num_pixels, brightness = 0.2, auto_write = True, pixel_order = ORDER
                 )
                 neopixel_normal()
                 pixels.show()
-            elif light_level in range(28, 39):
+            elif final_light_level in range(28, 39):
                 pixels.deinit()
                 pixels = neopixel.NeoPixel(
                     pixel_pin, num_pixels, brightness = 0.3, auto_write = True, pixel_order = ORDER
                 )
                 neopixel_normal()
                 pixels.show()
-            elif light_level in range(39, 50):
+            elif final_light_level in range(39, 50):
                 pixels.deinit()
                 pixels = neopixel.NeoPixel(
                     pixel_pin, num_pixels, brightness = 0.4, auto_write = True, pixel_order = ORDER
                 )
                 neopixel_normal()
                 pixels.show()
-            elif light_level in range(50, 61):
+            elif final_light_level in range(50, 61):
                 pixels.deinit()
                 pixels = neopixel.NeoPixel(
                     pixel_pin, num_pixels, brightness = 0.5, auto_write = True, pixel_order = ORDER
                 )
                 neopixel_normal()
                 pixels.show()
-            elif light_level in range(61, 72):
+            elif final_light_level in range(61, 72):
                 pixels.deinit()
                 pixels = neopixel.NeoPixel(
                     pixel_pin, num_pixels, brightness = 0.6, auto_write = True, pixel_order = ORDER
                 )
                 neopixel_normal()
                 pixels.show()
-            elif light_level in range(72, 83):
+            elif final_light_level in range(72, 83):
                 pixels.deinit()
                 pixels = neopixel.NeoPixel(
                     pixel_pin, num_pixels, brightness = 0.7, auto_write = True, pixel_order = ORDER
                 )
                 neopixel_normal()
                 pixels.show()
-            elif light_level in range(83, 94):
+            elif final_light_level in range(83, 94):
                 pixels.deinit()
                 pixels = neopixel.NeoPixel(
                     pixel_pin, num_pixels, brightness = 0.8, auto_write = True, pixel_order = ORDER
                 )
                 neopixel_normal()
                 pixels.show()
-            elif light_level in range(94, 105):
+            elif final_light_level in range(94, 105):
                 pixels.deinit()
                 pixels = neopixel.NeoPixel(
                     pixel_pin, num_pixels, brightness = 0.9, auto_write = True, pixel_order = ORDER
                 )
                 neopixel_normal()
                 pixels.show()
-            elif light_level >= 106:
+            elif final_light_level >= 106:
                 pixels.deinit()
                 pixels = neopixel.NeoPixel(
                     pixel_pin, num_pixels, brightness = 1, auto_write = True, pixel_order = ORDER
@@ -357,52 +506,55 @@ while True:
 
         print("Success")
 
+
         # Print sensor inputs to console
-        print("\n== Data Inputs: ==")
-        print('Temperature: {}°C'.format(temperature))
-        print('Humidity: {}%'.format(humidity))
-        print('Soil Moisture Level: {}%'.format(moisture_percentage))
-        print('Water Tank Level: {}%'.format(water_level_percentage))
-        print('Light Level: {} Lux'.format(light_level))
+        print("\n== Sensor data: ==")
+        print('Temperature: {}°C'.format(final_temperature))
+        print('Humidity: {}%'.format(final_humidity))
+        print('Soil Moisture Level: {}%'.format(final_soil_moisture))
+        print('Raw Soil Moisture Level (for testing/debugging): {}'.format(soil_moisture_raw_input))
+        print('Water Tank Level: {}%'.format(final_water_tank_level))
+        print('Raw Water Tank Distance (for testing/debugging): {}cm'.format(water_tank_level_raw_input))
+        print('Light Level: {} Lux'.format(final_light_level))
 
         # 90% - 100%
-        if moisture_percentage in range(90, 101):
+        if final_soil_moisture in range(90, 101):
             print('\nThe moisture level is currently very high')
         # 80% - 89%
-        elif moisture_percentage in range(80, 90):
+        elif final_soil_moisture in range(80, 90):
             print('\nThe moisture level is currently high')
         # 70% - 79%
-        elif moisture_percentage in range(70, 80):
+        elif final_soil_moisture in range(70, 80):
             print('\nThe moisture level is currently slightly high')
         # 45% - 69%
-        elif moisture_percentage in range(45, 70):
+        elif final_soil_moisture in range(45, 70):
             print('\nThe moisture level is currently optimal')
         # 40% - 44%
-        elif moisture_percentage in range(40, 44):
+        elif final_soil_moisture in range(40, 44):
             print('\nThe moisture level is currently slightly low')
             print('5ml of water was dispensed')
         # 35% - 39%
-        elif moisture_percentage in range(35, 40):
+        elif final_soil_moisture in range(35, 40):
             print('\nThe moisture level is currently slightly low')
             print('7.5ml of water was dispensed')
         # 30% - 34%
-        elif moisture_percentage in range(30, 35):
+        elif final_soil_moisture in range(30, 35):
             print('\nThe moisture level is currently slightly low')
             print('10ml of water was dispensed')
         # 25% - 29%
-        elif moisture_percentage in range(25, 30):
+        elif final_soil_moisture in range(25, 30):
             print('\nThe moisture level is currently low')
             print('12.5ml of water was dispensed')
         # 20% - 24%
-        elif moisture_percentage in range(20, 25):
+        elif final_soil_moisture in range(20, 25):
             print('\nThe moisture level is currently low')
             print('15ml of water was dispensed')
         # 10% - 19%
-        elif moisture_percentage in range(10, 19):
+        elif final_soil_moisture in range(10, 19):
             print('\nThe moisture level is currently low')
             print('17.5ml of water was dispensed')
         # 0% - 9%
-        elif moisture_percentage in range(0, 9):
+        elif final_soil_moisture in range(0, 9):
             print('\nThe moisture level is currently very low')
             print('20ml of water was dispensed')
         else:
@@ -414,7 +566,7 @@ while True:
         print("\n== Sending data to MySQL... ==")
         mycursor = mydb.cursor()
         sql = "INSERT INTO sensor_data (soil_moisture, temperature, humidity, light_level, water_tank_level, water_dispensed) VALUES (%s, %s, %s, %s, %s, %s)"
-        val = (moisture_percentage, temperature, humidity, light_level, water_level_percentage, db_water_log)
+        val = (final_soil_moisture, final_temperature, final_humidity, final_light_level, final_water_tank_level, final_water_usage)
         mycursor.execute(sql, val)
         mydb.commit()
         print("Success")
@@ -425,6 +577,7 @@ while True:
         print('\n')
         print('\n')
 
+
         # Sleep delay
         time.sleep(60)
 
@@ -434,17 +587,29 @@ while True:
         print('\n===== RUNTIME ERROR =====')
         print(error.args[0])
         print('\nAn expected error has occurred while reading sensors!')
-        print('Retrying in 2 seconds...')
+        print('Retrying in 3 seconds...')
         print('\n')
         print('\n')
-        time.sleep(2.0)
+        time.sleep(3)
         continue
+
+    except ValueError as error:
+        print('\n===== VALUE ERROR =====')
+        # Neopixels red
+        pixels.deinit()
+        pixels = neopixel.NeoPixel(
+            pixel_pin, num_pixels, brightness=0.5, auto_write=True, pixel_order=ORDER
+        )
+        neopixel_exception()
+        pixels.show()
+        print(error.args[0])
+        print('\nAn unexpected value has been read from the sensors!')
+        print('The program has been terminated and will need to be restarted manually.')
+        print('\n')
+        raise
 
     except Exception as exception:
         print('\n===== EXCEPTION =====')
-        print(exception.args[0])
-        dht_sens.exit()
-
         # Neopixels red
         pixels.deinit()
         pixels = neopixel.NeoPixel(
@@ -453,8 +618,10 @@ while True:
         neopixel_exception()
         pixels.show()
 
+        print(exception.args[0])
+        dht_sens.exit()
+
         print('\nAn unexpected and fatal error has occurred')
         print('The program has been terminated and will need to be restarted manually')
         print('\n')
         raise
-
