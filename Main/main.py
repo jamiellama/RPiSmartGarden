@@ -263,10 +263,10 @@ while True:
         print("\n== Processing sensor data into a user readable format... ==")
         # Water tank level percentage calculation
         # Max input distance (minimum tank level [furthest from sensor])
-        water_tank_max_level = 16.5
+        water_tank_max_level = 16
 
         # Min input distance (maximum tank level [closest to sensor])
-        water_tank_min_level = 6.8
+        water_tank_min_level = 8.5
 
         if water_tank_level_raw_input < water_tank_min_level:
             water_tank_level_raw_input = water_tank_min_level
