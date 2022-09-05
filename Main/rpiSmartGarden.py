@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""RPiSmartGarden.py: This script queries RPi Smart Garden sensors, processes data and inserts it into SQL database.
+"""rpiSmartGarden.py: This script queries RPi Smart Garden sensors, processes data and inserts it into SQL database.
 RPi Smart Garden peripherals are controlled using logical reasoning based on the processed data."""
 
 __author__      = "40176844"
@@ -572,14 +572,14 @@ while True:
         print("Success")
 
         print('\n=====')
-        print('End of script, 60 second delay')
+        print('End of script, 30 second delay')
         print('=====')
         print('\n')
         print('\n')
 
 
         # Sleep delay
-        time.sleep(60)
+        time.sleep(30)
 
         #GPIO.cleanup()
 
