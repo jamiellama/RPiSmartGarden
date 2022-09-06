@@ -254,8 +254,6 @@ def water_tank_level_percentage_calculation():
     water_tank_level_raw_percentage = (1 - water_tank_level_percentage_calc) * 100
     func_water_tank_level_percentage = round(water_tank_level_raw_percentage)
 
-    print("Water level calc complete")
-
     return func_water_tank_level_percentage
 
 
@@ -279,8 +277,6 @@ def soil_moisture_level_percentage_calculation():
             soil_moisture_max_raw_value - soil_moisture_min_raw_value)
     soil_moisture_raw_percentage = (1 - soil_moisture_percentage_calc) * 100
     func_soil_moisture_percentage = round(soil_moisture_raw_percentage)
-
-    print("Soil moisture calc complete")
 
     return func_soil_moisture_percentage
 
